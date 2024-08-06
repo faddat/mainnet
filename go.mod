@@ -1,6 +1,8 @@
 module github.com/cosmos/mainnet
 
-go 1.20
+go 1.22
+
+toolchain go1.22.5
 
 require (
 	github.com/alfg/blockchain v0.0.0-20170304071410-09d957063c58
