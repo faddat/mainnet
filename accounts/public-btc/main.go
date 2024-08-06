@@ -38,10 +38,42 @@ func (contrib BTCContribution) BTC() float64 {
 	return float64(contrib.Amount) / satoshiPerBTC
 }
 
+func readInputData() []BTCContribution {
+	data, err := ioutil.ReadFile(btcDonationsFile)
+	if err != nil {
+		fmt.Printf("Error reading file: %v\n", err)
+		os.Exit(1)
+	}
+
+	var contributions []BTCContribution
+	err = json.Unmarshal(data, &contributions)
+	if err != nil {
+		fmt.Printf("Error parsing JSON: %v\n", err)
+		os.Exit(1)
+	}
+
+	return contributions
+}
+
+func tallyBitcoinRaised(contributions []BTCContribution) float64 {
+	var totalSatoshi int64
+	for _, contrib := range contributions {
+		totalSatoshi += int64(contrib.Amount)
+	}
+	return float64(totalSatoshi) / satoshiPerBTC
+}
+
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "tally" {
+		contributions := readInputData()
+		totalBTC := tallyBitcoinRaised(contributions)
+		fmt.Printf("Total Bitcoin raised: %.8f BTC\n", totalBTC)
+		return
+	}
+
 	args := os.Args
 	if len(args) < 2 {
-		fmt.Println("requires 'data' or 'atoms' argument")
+		fmt.Println("requires 'data', 'atoms', or 'tally' argument")
 		os.Exit(1)
 	}
 
@@ -50,8 +82,12 @@ func main() {
 		getBTCData()
 	case "atoms":
 		writeBTCAtoms()
+	case "tally":
+		contributions := readInputData()
+		totalBTC := tallyBitcoinRaised(contributions)
+		fmt.Printf("Total Bitcoin raised: %.8f BTC\n", totalBTC)
 	default:
-		fmt.Println("requires 'data' or 'atoms' argument")
+		fmt.Println("requires 'data', 'atoms', or 'tally' argument")
 	}
 }
 
